@@ -238,7 +238,7 @@ set "GITHUB_RELEASE_URL=https://github.com/Karmine-gh/Zapret-personal/releases/t
 set "GITHUB_DOWNLOAD_URL=https://github.com/Karmine-gh/Zapret-personal/releases/latest/download/zapret"
 
 :: Get the latest version from GitHub
-for /f "delims=" %%A in ('powershell -command "(Invoke-WebRequest -Uri \"%GITHUB_VERSION_URL%\" -Headers @{\"Cache-Control\"=\"no-cache\"} -TimeoutSec 5).Content.Trim()" 2^>nul') do set "GITHUB_VERSION=%%A"
+for /f "delims=" %%A in ('powershell -command "(Invoke-WebRequest -Uri \"%GITHUB_VERSION_URL%\" -UseBasicParsing).Content.Trim()" 2^>nul') do set "GITHUB_VERSION=%%A"
 
 :: Error handling
 if not defined GITHUB_VERSION (
