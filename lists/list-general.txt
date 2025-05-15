@@ -43,6 +43,27 @@ betterttv.net
 7tv.app
 7tv.io
 soundcloud.com
+api.soundcloud.com
+feeds.soundcloud.com
+media.soundcloud.com
+cf-media.sndcdn.com
+edge-api.soundcloud.com
+w1.sndcdn.com
+api-v2.soundcloud.com
+assets.soundcloud.com
+secure-media.soundcloud.com
+cf-hls-media.sndcdn.com
+cf-media.sndcdn.com
+sndcdn.com
+mobi.soundcloud.com
+promote-v2.soundcloud.com
+charts.soundcloud.com
+developers.soundcloud.com
+checkout.soundcloud.com
+pre-pnd.soundcloud.com
+pnd.soundcloud.com
+help.soundcloud.com
+support.soundcloud.com
 
 valorant.secure.dyn.riotcdn.net
 playvalorant.com
