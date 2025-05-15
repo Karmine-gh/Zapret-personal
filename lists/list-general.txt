@@ -64,6 +64,15 @@ pre-pnd.soundcloud.com
 pnd.soundcloud.com
 help.soundcloud.com
 support.soundcloud.com
+instagram.com
+www.instagram.com
+api.instagram.com
+i.instagram.com
+scontent.cdninstagram.com
+cdninstagram.com
+graph.instagram.com
+z-p3.www.instagram.com
+z-p4.www.instagram.com
 
 valorant.secure.dyn.riotcdn.net
 playvalorant.com
