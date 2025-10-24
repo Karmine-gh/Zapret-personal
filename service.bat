@@ -1,5 +1,5 @@
 @echo off
-set "LOCAL_VERSION=2.1.1"
+set "LOCAL_VERSION=3.0.0"
 
 :: External commands
 if "%~1"=="status_zapret" (
@@ -28,7 +28,7 @@ if "%1"=="admin" (
 ) else (
     echo Requesting admin rights...
     powershell -Command "Start-Process 'cmd.exe' -ArgumentList '/c \"\"%~f0\" admin\"' -Verb RunAs"
-    exit /b
+    exit
 )
 
 
@@ -188,7 +188,7 @@ if not defined selectedFile (
 )
 
 :: Args that should be followed by value
-set "args_with_value=sni"
+set "args_with_value=sni host altorder"
 
 :: Parsing args (mergeargs: 2=start param|3=arg with value|1=params args|0=default)
 set "args="
@@ -249,9 +249,9 @@ for /f "tokens=*" %%a in ('type "!selectedFile!"') do (
 
                 if "!arg:~0,2!" EQU "--" (
                     set "mergeargs=2"
-                ) else if !mergeargs!==2 (
-                    set "mergeargs=1"
-                ) else if !mergeargs!==1 (
+                ) else if !mergeargs! GEQ 1 (
+                    if !mergeargs!==2 set "mergeargs=1"
+
                     for %%x in (!args_with_value!) do (
                         if /i "%%x"=="!arg!" (
                             set "mergeargs=3"
@@ -295,9 +295,9 @@ chcp 437 > nul
 cls
 
 :: Set current version and URLs
-set "GITHUB_VERSION_URL=https://raw.githubusercontent.com/Flowseal/zapret-discord-youtube/main/.service/version.txt"
-set "GITHUB_RELEASE_URL=https://github.com/Karmine-gh/Zapret-personal/releases/tag/"
-set "GITHUB_DOWNLOAD_URL=https://github.com/Karmine-gh/Zapret-personal/releases/latest/download/zapret-"
+set "GITHUB_VERSION_URL=https://raw.githubusercontent.com/Karmine-gh/Zapret-personal/main/.service/version.txt"
+set "GITHUB_RELEASE_URL=https://github.com/Karmine-gh/Zapret-personal/releases/latest/"
+set "GITHUB_DOWNLOAD_URL=https://github.com/Karmine-gh/Zapret-personal/releases/latest/download/Zapret.zip"
 
 :: Get the latest version from GitHub
 for /f "delims=" %%A in ('powershell -command "(Invoke-WebRequest -Uri \"%GITHUB_VERSION_URL%\" -Headers @{\"Cache-Control\"=\"no-cache\"} -TimeoutSec 5).Content.Trim()" 2^>nul') do set "GITHUB_VERSION=%%A"
@@ -350,6 +350,26 @@ if !errorlevel!==0 (
     call :PrintGreen "Base Filtering Engine check passed"
 ) else (
     call :PrintRed "[X] Base Filtering Engine is not running. This service is required for zapret to work"
+)
+echo:
+
+:: Proxy check
+set "proxyEnabled=0"
+set "proxyServer="
+
+for /f "tokens=2*" %%A in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable 2^>nul ^| findstr /i "ProxyEnable"') do (
+    if "%%B"=="0x1" set "proxyEnabled=1"
+)
+
+if !proxyEnabled!==1 (
+    for /f "tokens=2*" %%A in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyServer 2^>nul ^| findstr /i "ProxyServer"') do (
+        set "proxyServer=%%B"
+    )
+    
+    call :PrintYellow "[?] System proxy is enabled: !proxyServer!"
+    call :PrintYellow "Make sure it's valid or disable it if you don't use a proxy"
+) else (
+    call :PrintGreen "Proxy check passed"
 )
 echo:
 
@@ -457,7 +477,7 @@ echo:
 tasklist /FI "IMAGENAME eq winws.exe" | find /I "winws.exe" > nul
 set "winws_running=!errorlevel!"
 
-sc query WinDidvert | findstr /I "RUNNING STOP_PENDING" > nul
+sc query "WinDivert" | findstr /I "RUNNING STOP_PENDING" > nul
 set "windivert_running=!errorlevel!"
 
 if !winws_running! neq 0 if !windivert_running!==0 (
@@ -465,7 +485,8 @@ if !winws_running! neq 0 if !windivert_running!==0 (
     
     net stop "WinDivert" >nul 2>&1
     sc delete "WinDivert" >nul 2>&1
-    if !errorlevel! neq 0 (
+    sc query "WinDivert" >nul 2>&1
+    if !errorlevel!==0 (
         call :PrintRed "[X] Failed to delete WinDivert. Checking for conflicting services..."
         
         set "conflicting_services=GoodbyeDPI"
@@ -491,6 +512,7 @@ if !winws_running! neq 0 if !windivert_running!==0 (
         ) else (
             call :PrintYellow "[?] Attempting to delete WinDivert again..."
 
+            net stop "WinDivert" >nul 2>&1
             sc delete "WinDivert" >nul 2>&1
             sc query "WinDivert" >nul 2>&1
             if !errorlevel! neq 0 (
@@ -508,6 +530,8 @@ if !winws_running! neq 0 if !windivert_running!==0 (
 
 :: Conflicting bypasses
 set "conflicting_services=GoodbyeDPI discordfix_zapret winws1 winws2"
+set "found_any_conflict=0"
+set "found_conflicts="
 
 for %%s in (!conflicting_services!) do (
     sc query "%%s" >nul 2>&1
